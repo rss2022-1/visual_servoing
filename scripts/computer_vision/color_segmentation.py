@@ -37,6 +37,35 @@ def cd_color_segmentation(img, template):
 
 	bounding_box = ((0,0),(0,0))
 
+	# Change color space to HSV
+	hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+	# Erode
+	kernel = np.ones((8, 8), 'uint8')
+	img = cv2.erode(img, kernel, iterations=1)
+	img = cv2.dilate(img, kernel, iterations=1)
+
+	# Filter HSV values to get one with the cone color, creating mask while doing so
+	ORANGE_MIN = np.array([7, 50, 50],np.uint8) # [Hue, Saturation, Value]
+	ORANGE_MAX = np.array([13, 255, 255],np.uint8)
+	mask = cv2.inRange(hsv_img, ORANGE_MIN, ORANGE_MAX)
+	# image_print(mask)
+
+	# Put mask through
+	contours, hierarchy = cv2.findContours(mask,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+	max_h, max_w, best_x, best_y = 0, 0, 0, 0
+	for c in contours:
+		x,y,w,h = cv2.boundingRect(c)
+		if w * h > max_w * max_h:
+			max_h = h
+			max_w = w
+			best_x = x
+			best_y = y
+
+	cv2.rectangle(mask,(best_x,best_y),(best_x+max_w,best_y+max_h),(255,0,0),1)
+	bounding_box = ((best_x,best_y),(best_x+max_w,best_y+max_h))
+	# image_print(mask)
+
 	########### YOUR CODE ENDS HERE ###########
 
 	# Return bounding box
