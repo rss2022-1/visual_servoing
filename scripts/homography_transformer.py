@@ -84,6 +84,7 @@ class HomographyTransformer:
         relative_xy_msg.y_pos = y
 
         self.cone_pub.publish(relative_xy_msg)
+        self.marker_pub(x, y, "map")
 
 
     def transformUvToXy(self, u, v):
