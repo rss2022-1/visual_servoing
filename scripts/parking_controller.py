@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from distutils.log import error
 import rospy
 import numpy as np
 import time
@@ -103,6 +104,13 @@ class ParkingController():
 
         # YOUR CODE HERE
         # Populate error_msg with relative_x, relative_y, sqrt(x^2+y^2)
+
+        # if error, should it be relative_x - d, relative_y - 0, sqrt(x^2+y^2)-d? 
+
+        # currently just straight up publishes these values
+        error_msg.x_error = self.relative_x
+        error_msg.y_error = self.relative_y
+        error_msg.distance_error = np.sqrt(self.relative_x**2+self.relative_y**2)
 
         #################################
         
