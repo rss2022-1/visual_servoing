@@ -15,19 +15,20 @@ class ParkingController():
     Can be used in the simulator and on the real robot.
     """
 
+    rospy.set_param("parking_controller/velocity", .5)
+    # PID coefficients that are all used equally and are super useful
     Kp = 0.7
     Ki = 0
     Kd = 0
 
     def __init__(self):
         rospy.Subscriber("/relative_cone", ConeLocation, self.relative_cone_callback)
-
         DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
         self.error_pub = rospy.Publisher("/parking_error", ParkingError, queue_size=10)
 
-        self.parking_distance = .75 # meters; try playing with this number!
-        self.eps = 0.05
+        self.parking_distance = 1.25 # meters; try playing with this number!
+        self.eps = 0.04
         self.relative_x = 0
         self.relative_y = 0
 
@@ -39,6 +40,7 @@ class ParkingController():
         self.relative_x = msg.x_pos
         self.relative_y = msg.y_pos
         drive_cmd = AckermannDriveStamped()
+        velocity = rospy.get_param("parking_controller/velocity")
         
         def create_message(velocity, steering_angle):
             drive_cmd.header.stamp = rospy.Time.now()
@@ -49,35 +51,41 @@ class ParkingController():
             drive_cmd.drive.acceleration = 0
             drive_cmd.drive.jerk = 0
 
-        # if self.relative_x < self.parking_distance + self.eps:
-        #     rospy.loginfo('stopping')
-        #     create_message(0, 0)
-        # else:
-        #     # Cone to left of car path
-        #     if self.relative_y > 0.05:
-        #         rospy.loginfo('turning left')
-        #         create_message(0.5, 0.34) # hard left
-        #     # Cone to right of car path
-        #     elif self.relative_y < 0.05:
-        #         rospy.loginfo('turning right')
-        #         create_message(0.5, -0.34) # hard right
-        #     # Cone pretty much in front of car path
-        #     else:
-        #         rospy.loginfo('straight forwards')
-        #         create_message(0.5, 0)
-        if self.relative_x < self.parking_distance + self.eps:
-            rospy.loginfo('stopping')
-            create_message(0, 0)
-        else:
-            # Angle being misaligned
+        # Correct distance from cone
+        if np.abs(self.relative_x - self.parking_distance) < self.eps:
+            # Also facing the cone
+            if np.abs(self.relative_y) < self.eps:
+                create_message(0, 0)
+            # Need to adjust angle
+            else:
+                # Back up a bit, then re-park
+                for _ in range(10):
+                    # rospy.loginfo('not facing cone')
+                    error = -self.relative_y
+                    output = self.pid_controller(error)
+                    if output > 0:
+                        angle = min(0.34, output)
+                    elif output <= 0:
+                        angle = max(-0.34, output)
+                    create_message(-velocity, angle)
+        # Cone too far in front
+        elif self.relative_x - self.parking_distance > self.eps:
             error = self.relative_y
             output = self.pid_controller(error)
             if output > 0:
                 angle = min(0.34, output)
             elif output <= 0:
                 angle = max(-0.34, output)
-            create_message(0.5, angle)
-        
+            create_message(velocity, angle)
+        # Cone too close
+        elif self.relative_x - self.parking_distance < -self.eps:
+            error = -self.relative_y
+            output = self.pid_controller(error)
+            if output > 0:
+                angle = min(0.34, output)
+            elif output <= 0:
+                angle = max(-0.34, output)
+            create_message(-velocity, angle)
         self.drive_pub.publish(drive_cmd)
         self.error_publisher()
 
@@ -100,19 +108,10 @@ class ParkingController():
         """
         error_msg = ParkingError()
 
-        #################################
-
-        # YOUR CODE HERE
-        # Populate error_msg with relative_x, relative_y, sqrt(x^2+y^2)
-
-        # if error, should it be relative_x - d, relative_y - 0, sqrt(x^2+y^2)-d? 
-
         # currently just straight up publishes these values
         error_msg.x_error = self.relative_x
         error_msg.y_error = self.relative_y
         error_msg.distance_error = np.sqrt(self.relative_x**2+self.relative_y**2)
-
-        #################################
         
         self.error_pub.publish(error_msg)
 
