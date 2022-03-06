@@ -62,7 +62,7 @@ def cd_color_segmentation(img, template):
 			best_x = x
 			best_y = y
 
-	cv2.rectangle(mask,(best_x,best_y),(best_x+max_w,best_y+max_h),(255,0,0),1)
+	# cv2.rectangle(mask,(best_x,best_y),(best_x+max_w,best_y+max_h),(255,0,0),1)
 	bounding_box = ((best_x,best_y),(best_x+max_w,best_y+max_h))
 	# image_print(mask)
 
