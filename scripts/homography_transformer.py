@@ -45,7 +45,7 @@ class HomographyTransformer:
     def __init__(self):
         self.cone_px_sub = rospy.Subscriber("/relative_cone_px", ConeLocationPixel, self.cone_detection_callback)
         self.cone_pub = rospy.Publisher("/relative_cone", ConeLocation, queue_size=10)
-        # self.test_px_sub = rospy.Subscriber("/test", Point, self.test_callback)
+        self.test_px_sub = rospy.Subscriber("/test", Point, self.test_callback)
         self.marker_pub = rospy.Publisher("/cone_marker",
             Marker, queue_size=1)
 
