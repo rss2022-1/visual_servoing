@@ -11,6 +11,7 @@ from sensor_msgs.msg import Image
 from ackermann_msgs.msg import AckermannDriveStamped
 from visualization_msgs.msg import Marker
 from visual_servoing.msg import ConeLocation, ConeLocationPixel
+from geometry_msgs.msg import Point
 
 #The following collection of pixel locations and corresponding relative
 #ground plane locations are used to compute our homography matrix
@@ -44,7 +45,7 @@ class HomographyTransformer:
     def __init__(self):
         self.cone_px_sub = rospy.Subscriber("/relative_cone_px", ConeLocationPixel, self.cone_detection_callback)
         self.cone_pub = rospy.Publisher("/relative_cone", ConeLocation, queue_size=10)
-
+        self.test_px_sub = rospy.Subscriber("/test", Point, self.test_callback)
         self.marker_pub = rospy.Publisher("/cone_marker",
             Marker, queue_size=1)
 
@@ -62,6 +63,12 @@ class HomographyTransformer:
         np_pts_image = np.float32(np_pts_image[:, np.newaxis, :])
 
         self.h, err = cv2.findHomography(np_pts_image, np_pts_ground)
+
+    def test_callback(self, msg):
+        u = msg.x
+        v = msg.y
+        x, y = self.transformUvToXy(u, v)
+        self.draw_marker(x, y, "base_link")
 
     def cone_detection_callback(self, msg):
         #Extract information from message
