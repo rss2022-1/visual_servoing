@@ -21,10 +21,10 @@ from geometry_msgs.msg import Point
 
 ######################################################
 ## DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
-PTS_IMAGE_PLANE = [[491, 131],
-                   [364, 140],
-                   [289, 126],
-                   [220, 129]] # dummy points
+PTS_IMAGE_PLANE = [[228, 122],
+                   [497, 115],
+                   [271, 143],
+                   [446, 143]] # dummy points
 ######################################################
 
 # PTS_GROUND_PLANE units are in inches
@@ -32,10 +32,10 @@ PTS_IMAGE_PLANE = [[491, 131],
 
 ######################################################
 ## DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
-PTS_GROUND_PLANE = [[28.75, 11.5],
-                    [34, 1],
-                    [24, -5.5],
-                    [31.25, -10.5]] # dummy points
+PTS_GROUND_PLANE = [[21, -9.5],
+                    [21, 7.375],
+                    [32.5, -9.5],
+                    [32.5, 7.375]] # dummy points
 ######################################################
 
 METERS_PER_INCH = 0.0254
@@ -45,7 +45,7 @@ class HomographyTransformer:
     def __init__(self):
         self.cone_px_sub = rospy.Subscriber("/relative_cone_px", ConeLocationPixel, self.cone_detection_callback)
         self.cone_pub = rospy.Publisher("/relative_cone", ConeLocation, queue_size=10)
-        self.test_px_sub = rospy.Subscriber("/test", Point, self.test_callback)
+        # self.test_px_sub = rospy.Subscriber("/test", Point, self.test_callback)
         self.marker_pub = rospy.Publisher("/cone_marker",
             Marker, queue_size=1)
 
