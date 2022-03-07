@@ -1,3 +1,4 @@
+import numpy.core.multiarray
 import cv2
 import imutils
 import numpy as np
@@ -49,7 +50,7 @@ def cd_sift_ransac(img, template):
 	bf = cv2.BFMatcher()
 	matches = bf.knnMatch(des1,des2,k=2)
 	print("New")
-	# print(len(matches))
+	# print("matches: " + str(len(matches)))
 
 	# Find and store good matches
 	good = []
@@ -61,40 +62,38 @@ def cd_sift_ransac(img, template):
 	if len(good) > MIN_MATCH:
 		src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
 		dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
+		# print("src pts: " + str(src_pts))
+		# print("dst pts: " + str(dst_pts))
 
 		# Create mask
 		M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
 		matchesMask = mask.ravel().tolist()
-		# print(matchesMask)
-		# print(M)
+		# print("matchesMask: " + str(matchesMask))
+		# print("M: " + str(M))
 
 		h, w = template.shape
 		pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
-		# print(pts)
+		# print("pts: " + str(pts))
 
 		########## YOUR CODE STARTS HERE ##########
-
+		destination = cv2.perspectiveTransform(pts, M)
+		destination = destination.astype(int)
 		x_min = y_min = float("inf")
 		x_max = y_max = 0
-
-		for i in range(len(dst_pts)):
-			if matchesMask[i] == 1:
-				# old_x, old_y = src_pts[i][0]
-				# x, y, z = np.matmul(M, np.array([old_x, old_y, 1.]))
-				x, y = dst_pts[i][0]
-				if x > x_max:
-					x_max = x
-				elif x < x_min:
-					x_min = x
-				if y > y_max:
-					y_max = y
-				elif y < y_min:
-					y_min = y
-
-
-		print(x_min, x_max, y_min, y_max)
+		for pt in destination:
+			x = pt[0][0]
+			y = pt[0][1]
+			if x < x_min:
+				x_min = x
+			if x > x_max:
+				x_max = x
+			if y < y_min:
+				y_min = y
+			if y > y_max:
+				y_max = y
+		
 		if x_min == float('inf') or y_min == float('inf'):
-			print "[SIFT] not enough matches; matches: ", len(good)
+			print("[SIFT] not enough matches; matches: " +  str(len(good)))
 
 			# Return bounding box of area 0 if no match found
 			return ((0,0), (0,0))
@@ -108,7 +107,7 @@ def cd_sift_ransac(img, template):
 		return ((x_min, y_min), (x_max, y_max))
 	else:
 
-		print "[SIFT] not enough matches; matches: ", len(good)
+		print("[SIFT] not enough matches; matches: " +  str(len(good)))
 
 		# Return bounding box of area 0 if no match found
 		return ((0,0), (0,0))
