@@ -26,8 +26,9 @@ class ParkingController():
         DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
         self.error_pub = rospy.Publisher("/parking_error", ParkingError, queue_size=10)
+        self.drive_cmd = AckermannDriveStamped()
 
-        self.parking_distance = 1.25 # meters; try playing with this number!
+        self.parking_distance = 0.75 # meters; try playing with this number!
         self.eps = 0.04
         self.relative_x = 0
         self.relative_y = 0
@@ -39,17 +40,7 @@ class ParkingController():
     def relative_cone_callback(self, msg):
         self.relative_x = msg.x_pos
         self.relative_y = msg.y_pos
-        drive_cmd = AckermannDriveStamped()
         velocity = rospy.get_param("parking_controller/velocity")
-        
-        def create_message(velocity, steering_angle):
-            drive_cmd.header.stamp = rospy.Time.now()
-            drive_cmd.header.frame_id = 'map'
-            drive_cmd.drive.steering_angle = steering_angle
-            drive_cmd.drive.steering_angle_velocity = 0
-            drive_cmd.drive.speed = velocity
-            drive_cmd.drive.acceleration = 0
-            drive_cmd.drive.jerk = 0
 
         # Correct distance from cone
         if np.abs(self.relative_x - self.parking_distance) < self.eps:
@@ -86,7 +77,7 @@ class ParkingController():
             elif output <= 0:
                 angle = max(-0.34, output)
             create_message(-velocity, angle)
-        self.drive_pub.publish(drive_cmd)
+        self.drive_pub.publish(self.drive_cmd)
         self.error_publisher()
 
     def pid_controller(self, error):
@@ -109,11 +100,20 @@ class ParkingController():
         error_msg = ParkingError()
 
         # currently just straight up publishes these values
-        error_msg.x_error = self.relative_x - self.parking_distance # ideally, cone in line with x-axis
-        error_msg.y_error = self.relative_y - 0 # so follows that ideal y is 0
-        error_msg.distance_error = np.sqrt(self.relative_x**2+self.relative_y**2)-self.parking_distance # ideal distance is also the parking distance
+        error_msg.x_error = self.relative_x
+        error_msg.y_error = self.relative_y
+        error_msg.distance_error = np.sqrt(self.relative_x**2+self.relative_y**2)
         
         self.error_pub.publish(error_msg)
+
+    def create_message(self, velocity, steering_angle):
+        self.drive_cmd.header.stamp = rospy.Time.now()
+        self.drive_cmd.header.frame_id = 'map'
+        self.drive_cmd.drive.steering_angle = steering_angle
+        self.drive_cmd.drive.steering_angle_velocity = 0
+        self.drive_cmd.drive.speed = velocity
+        self.drive_cmd.drive.acceleration = 0
+        self.drive_cmd.drive.jerk = 0
 
 if __name__ == '__main__':
     try:
