@@ -78,25 +78,12 @@ def cd_sift_ransac(img, template):
 		########## YOUR CODE STARTS HERE ##########
 		destination = cv2.perspectiveTransform(pts, M)
 		destination = destination.astype(int)
-		x_min = y_min = float("inf")
-		x_max = y_max = 0
-		for pt in destination:
-			x = pt[0][0]
-			y = pt[0][1]
-			if x < x_min:
-				x_min = x
-			if x > x_max:
-				x_max = x
-			if y < y_min:
-				y_min = y
-			if y > y_max:
-				y_max = y
-		
-		if x_min == float('inf') or y_min == float('inf'):
-			print("[SIFT] not enough matches; matches: " +  str(len(good)))
-
-			# Return bounding box of area 0 if no match found
-			return ((0,0), (0,0))
+		xs = destination[:,0,0]
+		ys = destination[:,0,1]
+		x_min = min(xs)
+		x_max = max(xs)
+		y_min = min(ys)
+		y_max = max(ys)
 
 		cv2.rectangle(img,(x_min,y_min),(x_max,y_max),(255,0,0),1)
 		image_print(img)
