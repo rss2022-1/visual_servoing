@@ -132,10 +132,18 @@ def cd_template_matching(img, template):
 		########## YOUR CODE STARTS HERE ##########
 		# Use OpenCV template matching functions to find the best match
 		# across template scales.
+		res = cv2.matchTemplate(img_canny, resized_template, cv2.TM_CCOEFF_NORMED)
+		(minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(res)
 
-		# Remember to resize the bounding box using the highest scoring scale
-		# x1,y1 pixel will be accurate, but x2,y2 needs to be correctly scaled
-		bounding_box = ((0,0),(0,0))
+		if not best_match or maxVal > best_match[1]:
+			best_match = (minVal, maxVal, minLoc, maxLoc)
+			(startX, startY) = maxLoc
+			endX = startX + template.shape[1]
+			endY = startY + template.shape[0]
+			# Remember to resize the bounding box using the highest scoring scale
+			# x1,y1 pixel will be accurate, but x2,y2 needs to be correctly scaled
+			bounding_box = ((startX,startY),(endX,endY))
 		########### YOUR CODE ENDS HERE ###########
-
+	# cv2.rectangle(img, bounding_box[0],bounding_box[1],(255,0,0),1)
+	# image_print(img)
 	return bounding_box
