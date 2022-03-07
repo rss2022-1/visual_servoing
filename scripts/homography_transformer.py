@@ -68,6 +68,11 @@ class HomographyTransformer:
         u = msg.x
         v = msg.y
         x, y = self.transformUvToXy(u, v)
+        relative_xy_msg = ConeLocation()
+        relative_xy_msg.x_pos = x
+        relative_xy_msg.y_pos = y
+        self.cone_pub.publish(relative_xy_msg)
+        
         self.draw_marker(x, y, "base_link")
 
     def cone_detection_callback(self, msg):
