@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import pdb
-import imutils
 
 #################### X-Y CONVENTIONS #########################
 # 0,0  X  > > > > >
@@ -38,8 +37,6 @@ def cd_color_segmentation(img, template):
 				(x1, y1) is the top left of the bbox and (x2, y2) is the bottom right of the bbox
 	"""
 	########## YOUR CODE STARTS HERE ##########
-	img = imutils.rotate(img, 180)
-
 	bounding_box = ((0,0),(0,0))
 
 	# Change color space to HSV

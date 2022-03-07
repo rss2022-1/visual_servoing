@@ -5,6 +5,7 @@ import rospy
 
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
+import imutils
 
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point #geometry_msgs not in CMake file
@@ -46,6 +47,7 @@ class ConeDetector():
         #################################
 
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+        image = imutils.rotate(image, 180)
         bb = cd_color_segmentation(image, None)
         tlx, tly = bb[0]
         brx, bry = bb[1]
