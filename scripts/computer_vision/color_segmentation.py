@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import pdb
+import imutils
 
 #################### X-Y CONVENTIONS #########################
 # 0,0  X  > > > > >
@@ -19,7 +20,10 @@ def image_print(img):
 	Helper function to print out images, for debugging. Pass them in as a list.
 	Press any key to continue.
 	"""
-	cv2.imshow("image", img)
+	winname = "Image"
+	cv2.namedWindow(winname)        # Create a named window
+	cv2.moveWindow(winname, 40,30)  # Move it to (40,30)
+	cv2.imshow(winname, img)
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
@@ -34,6 +38,7 @@ def cd_color_segmentation(img, template):
 				(x1, y1) is the top left of the bbox and (x2, y2) is the bottom right of the bbox
 	"""
 	########## YOUR CODE STARTS HERE ##########
+	img = imutils.rotate(img, 180)
 
 	bounding_box = ((0,0),(0,0))
 
@@ -46,8 +51,8 @@ def cd_color_segmentation(img, template):
 	img = cv2.dilate(img, kernel, iterations=1)
 
 	# Filter HSV values to get one with the cone color, creating mask while doing so
-	ORANGE_MIN = np.array([7, 50, 50],np.uint8) # [Hue, Saturation, Value]
-	ORANGE_MAX = np.array([13, 255, 255],np.uint8)
+	ORANGE_MIN = np.array([5, 50, 50],np.uint8) # [Hue, Saturation, Value] #5/17
+	ORANGE_MAX = np.array([17, 255, 255],np.uint8)
 	mask = cv2.inRange(hsv_img, ORANGE_MIN, ORANGE_MAX)
 	# image_print(mask)
 
@@ -62,8 +67,10 @@ def cd_color_segmentation(img, template):
 			best_x = x
 			best_y = y
 
-	# cv2.rectangle(mask,(best_x,best_y),(best_x+max_w,best_y+max_h),(255,0,0),1)
+	# cv2.rectangle(img,(best_x,best_y),(best_x+max_w,best_y+max_h),(255,0,0),1)
+
 	bounding_box = ((best_x,best_y),(best_x+max_w,best_y+max_h))
+	# image_print(img)
 	# image_print(mask)
 
 	########### YOUR CODE ENDS HERE ###########
