@@ -9,6 +9,7 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point #geometry_msgs not in CMake file
 from visual_servoing.msg import ConeLocationPixel
+from computer_vision.color_segmentation import cd_color_segmentation
 
 # import your color segmentation algorithm; call this function in ros_image_callback!
 from computer_vision.color_segmentation import cd_color_segmentation
@@ -45,6 +46,7 @@ class ConeDetector():
         #################################
 
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+        bb = cd_color_segmentation(image, None)
 
         debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
         self.debug_pub.publish(debug_msg)
