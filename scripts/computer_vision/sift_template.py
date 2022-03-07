@@ -1,3 +1,4 @@
+from email.mime import image
 import numpy.core.multiarray
 import cv2
 import imutils
@@ -85,8 +86,8 @@ def cd_sift_ransac(img, template):
 		y_min = min(ys)
 		y_max = max(ys)
 
-		cv2.rectangle(img,(x_min,y_min),(x_max,y_max),(255,0,0),1)
-		image_print(img)
+		# cv2.rectangle(img,(x_min,y_min),(x_max,y_max),(255,0,0),1)
+		# image_print(img)
 
 		########### YOUR CODE ENDS HERE ###########
 
@@ -133,17 +134,18 @@ def cd_template_matching(img, template):
 		# Use OpenCV template matching functions to find the best match
 		# across template scales.
 		res = cv2.matchTemplate(img_canny, resized_template, cv2.TM_CCOEFF_NORMED)
-		(minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(res)
+		(min_val, max_val, min_loc, max_loc) = cv2.minMaxLoc(res)
 
-		if not best_match or maxVal > best_match[1]:
-			best_match = (minVal, maxVal, minLoc, maxLoc)
-			(startX, startY) = maxLoc
-			endX = startX + template.shape[1]
-			endY = startY + template.shape[0]
+		if not best_match or max_val > best_match[1]:
+			best_match = (min_val, max_val, min_loc, max_loc)
+			(start_x, start_y) = max_loc
+			end_x = start_x + w
+			end_y = start_y + h
 			# Remember to resize the bounding box using the highest scoring scale
 			# x1,y1 pixel will be accurate, but x2,y2 needs to be correctly scaled
-			bounding_box = ((startX,startY),(endX,endY))
+			bounding_box = ((start_x,start_y),(end_x,end_y))
 		########### YOUR CODE ENDS HERE ###########
 	# cv2.rectangle(img, bounding_box[0],bounding_box[1],(255,0,0),1)
+	# image_print(template)
 	# image_print(img)
 	return bounding_box
