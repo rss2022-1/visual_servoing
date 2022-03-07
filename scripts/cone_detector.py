@@ -54,7 +54,7 @@ class ConeDetector():
         cone_location.v = center_y
 
         self.cone_pub.publish(cone_location)
-
+        cv2.rectangle(image,bb[0],bb[1],(255,0,0),1)
         debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
         self.debug_pub.publish(debug_msg)
 
