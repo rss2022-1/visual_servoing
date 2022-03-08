@@ -52,14 +52,10 @@ class ConeDetector():
         tlx, tly = bb[0]
         brx, bry = bb[1]
         center_x, center_y = (brx - tlx)/2.0 + tlx, bry
-        rospy.loginfo("tlx: %f, tly: %f, brx: %f, bry: %f", tlx, tly, brx, bry)
-        rospy.loginfo("center_x: %f, center_y: %f", center_x, center_y)
         (h,w) = image.shape[:2]
-        rospy.loginfo("height: %f, width: %f", h, w)
-        rospy.loginfo("\n\n\n")
         cone_location = ConeLocationPixel()
-        cone_location.u = center_x
-        cone_location.v = center_y
+        cone_location.u = w - center_x
+        cone_location.v = h - center_y
 
         self.cone_pub.publish(cone_location)
         cv2.rectangle(image, bb[0], bb[1], (255,0,0), 1)
