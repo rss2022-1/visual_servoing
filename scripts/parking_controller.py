@@ -29,7 +29,8 @@ class ParkingController():
         self.drive_cmd = AckermannDriveStamped()
 
         self.parking_distance = 1 # meters; try playing with this number!
-        self.eps = 0.04
+        self.y_eps = 0.04
+        self.x_eps = 0.1
         self.relative_x = 0
         self.relative_y = 0
 
@@ -43,9 +44,9 @@ class ParkingController():
         velocity = rospy.get_param("parking_controller/velocity")
 
         # Correct distance from cone
-        if np.abs(self.relative_x - self.parking_distance) < self.eps:
+        if np.abs(self.relative_x - self.parking_distance) < self.x_eps:
             # Also facing the cone
-            if np.abs(self.relative_y) < self.eps:
+            if np.abs(self.relative_y) < self.y_eps:
                 self.create_message(0, 0)
             # Need to adjust angle
             else:
@@ -58,7 +59,7 @@ class ParkingController():
                     angle = max(-0.34, output)
                 self.create_message(-velocity, angle)
         # Cone too far in front
-        elif self.relative_x - self.parking_distance > self.eps:
+        elif self.relative_x - self.parking_distance > self.x_eps:
             error = self.relative_y
             output = self.pid_controller(error)
             if output > 0:
@@ -67,7 +68,7 @@ class ParkingController():
                 angle = max(-0.34, output)
             self.create_message(velocity, angle)
         # Cone too close
-        elif self.relative_x - self.parking_distance < -self.eps:
+        elif self.relative_x - self.parking_distance < -self.x_eps:
             error = -self.relative_y
             output = self.pid_controller(error)
             if output > 0:
