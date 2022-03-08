@@ -28,7 +28,7 @@ class ParkingController():
         self.error_pub = rospy.Publisher("/parking_error", ParkingError, queue_size=10)
         self.drive_cmd = AckermannDriveStamped()
 
-        self.parking_distance = 0.75 # meters; try playing with this number!
+        self.parking_distance = 1.5 # meters; try playing with this number!
         self.eps = 0.04
         self.relative_x = 0
         self.relative_y = 0
@@ -46,19 +46,17 @@ class ParkingController():
         if np.abs(self.relative_x - self.parking_distance) < self.eps:
             # Also facing the cone
             if np.abs(self.relative_y) < self.eps:
-                create_message(0, 0)
+                self.create_message(0, 0)
             # Need to adjust angle
             else:
                 # Back up a bit, then re-park
-                for _ in range(10):
-                    # rospy.loginfo('not facing cone')
-                    error = -self.relative_y
-                    output = self.pid_controller(error)
-                    if output > 0:
-                        angle = min(0.34, output)
-                    elif output <= 0:
-                        angle = max(-0.34, output)
-                    create_message(-velocity, angle)
+                error = -self.relative_y
+                output = self.pid_controller(error)
+                if output > 0:
+                    angle = min(0.34, output)
+                elif output <= 0:
+                    angle = max(-0.34, output)
+                self.create_message(-velocity, angle)
         # Cone too far in front
         elif self.relative_x - self.parking_distance > self.eps:
             error = self.relative_y
@@ -67,7 +65,7 @@ class ParkingController():
                 angle = min(0.34, output)
             elif output <= 0:
                 angle = max(-0.34, output)
-            create_message(velocity, angle)
+            self.create_message(velocity, angle)
         # Cone too close
         elif self.relative_x - self.parking_distance < -self.eps:
             error = -self.relative_y
@@ -76,7 +74,7 @@ class ParkingController():
                 angle = min(0.34, output)
             elif output <= 0:
                 angle = max(-0.34, output)
-            create_message(-velocity, angle)
+            self.create_message(-velocity, angle)
         self.drive_pub.publish(self.drive_cmd)
         self.error_publisher()
 
