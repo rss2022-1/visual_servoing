@@ -48,8 +48,8 @@ def cd_color_segmentation(img, template):
 	img = cv2.dilate(img, kernel, iterations=1)
 
 	# Filter HSV values to get one with the cone color, creating mask while doing so
-	ORANGE_MIN = np.array([5, 50, 50],np.uint8) # [Hue, Saturation, Value] #5/17
-	ORANGE_MAX = np.array([17, 255, 255],np.uint8)
+	ORANGE_MIN = np.array([7, 50, 50],np.uint8) # [Hue, Saturation, Value] #5/17 # 5
+	ORANGE_MAX = np.array([13, 255, 255],np.uint8) # 17
 	mask = cv2.inRange(hsv_img, ORANGE_MIN, ORANGE_MAX)
 	# image_print(mask)
 
