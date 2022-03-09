@@ -29,8 +29,8 @@ class ParkingController():
         self.drive_cmd = AckermannDriveStamped()
 
         self.parking_distance = 1 # meters; try playing with this number!
-        self.y_eps = 0.06
-        self.x_eps = 0.1
+        self.eps = 0.05
+        self.slow_range = 0.3
         self.relative_x = 0
         self.relative_y = 0
 
@@ -44,22 +44,24 @@ class ParkingController():
         velocity = rospy.get_param("parking_controller/velocity")
 
         # Correct distance from cone
-        if np.abs(self.relative_x - self.parking_distance) < self.x_eps:
+        if np.abs(self.relative_x - self.parking_distance) < self.slow_range:
             # Also facing the cone
-            if np.abs(self.relative_y) < self.y_eps:
-                self.create_message(0, 0)
+            if np.abs(self.relative_y) < self.eps:
+                velocity *= (self.relative_x-self.parking_distance)/self.slow_range
+                self.create_message(velocity, 0)
             # Need to adjust angle
             else:
                 # Back up a bit, then re-park
-                error = -self.relative_y
-                output = self.pid_controller(error)
-                if output > 0:
-                    angle = min(0.34, output)
-                elif output <= 0:
-                    angle = max(-0.34, output)
-                self.create_message(-velocity/4., angle)
+                for _ in range(200):
+                    error = -self.relative_y
+                    output = self.pid_controller(error)
+                    if output > 0:
+                        angle = min(0.34, output)
+                    elif output <= 0:
+                        angle = max(-0.34, output)
+                    self.create_message(-velocity, angle)
         # Cone too far in front
-        elif self.relative_x - self.parking_distance > self.x_eps:
+        elif self.relative_x - self.parking_distance > self.slow_range:
             error = self.relative_y
             output = self.pid_controller(error)
             if output > 0:
@@ -68,7 +70,7 @@ class ParkingController():
                 angle = max(-0.34, output)
             self.create_message((velocity * min(abs(self.relative_x - self.parking_distance), 1)), angle)
         # Cone too close
-        elif self.relative_x - self.parking_distance < -self.x_eps:
+        elif self.relative_x - self.parking_distance < -self.eps:
             error = -self.relative_y
             output = self.pid_controller(error)
             if output > 0:
