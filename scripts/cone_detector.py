@@ -25,7 +25,7 @@ class ConeDetector():
     """
     def __init__(self):
         # toggle line follower vs cone parker
-        self.LineFollower = False
+        self.LineFollower = True
         # height: 376, width: 672
         self.start_y = 150
         self.end_y = 280
