@@ -43,6 +43,7 @@ class ParkingController():
         self.relative_y = msg.y_pos
         velocity = rospy.get_param("parking_controller/velocity")
 
+        dist, angle = self.get_dist_and_angle_to_target(self.relative_x, self.relative_y, 0, 0)
         # Correct distance from cone
         if np.abs(self.relative_x - self.parking_distance) < self.x_eps:
             # Also facing the cone
@@ -51,7 +52,7 @@ class ParkingController():
             # Need to adjust angle
             else:
                 # Back up a bit, then re-park
-                error = -self.relative_y
+                error = -np.arctan(self.relative_y/self.relative_x)
                 output = self.pid_controller(error)
                 if output > 0:
                     angle = min(0.34, output)
@@ -60,7 +61,7 @@ class ParkingController():
                 self.create_message(-velocity/4., angle)
         # Cone too far in front
         elif self.relative_x - self.parking_distance > self.x_eps:
-            error = self.relative_y
+            error = np.arctan(self.relative_y/self.relative_x)
             output = self.pid_controller(error)
             if output > 0:
                 angle = min(0.34, output)
@@ -69,7 +70,7 @@ class ParkingController():
             self.create_message((velocity * min(abs(self.relative_x - self.parking_distance), 1)), angle)
         # Cone too close
         elif self.relative_x - self.parking_distance < -self.x_eps:
-            error = -self.relative_y
+            error = -np.arctan(self.relative_y/self.relative_x)
             output = self.pid_controller(error)
             if output > 0:
                 angle = min(0.34, output)
@@ -78,6 +79,11 @@ class ParkingController():
             self.create_message(-velocity*min(abs(self.relative_x - self.parking_distance), 1), angle)
         self.drive_pub.publish(self.drive_cmd)
         self.error_publisher()
+
+    def get_dist_and_angle_to_target(self, target_x, target_y, x, y):
+        angle = np.arctan(float(target_y - y)/float(target_x - x))
+        dist = np.sqrt((target_x - x)**2 + (target_y - y)**2)
+        return dist, angle
 
     def pid_controller(self, error):
         curr_time = time.time()
