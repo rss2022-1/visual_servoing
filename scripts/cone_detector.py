@@ -24,15 +24,15 @@ class ConeDetector():
     """
     def __init__(self):
         # toggle line follower vs cone parker
-        self.LineFollower = False
+        self.LineFollower = True
+        self.start_y = 80
+        self.end_y = 140
 
         # Subscribe to ZED camera RGB frames
         self.cone_pub = rospy.Publisher("/relative_cone_px", ConeLocationPixel, queue_size=10)
         self.debug_pub = rospy.Publisher("/cone_debug_img", Image, queue_size=10)
         self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
-        self.avg_x = []
-        self.avg_y = []
 
     def image_callback(self, image_msg):
         # Apply your imported color segmentation function (cd_color_segmentation) to the image msg here
@@ -48,26 +48,29 @@ class ConeDetector():
         # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
         #################################
 
-        image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
-        image = imutils.rotate(image, 180)
-        bb, mask = cd_color_segmentation(image, None)
-        tlx, tly = bb[0]
-        brx, bry = bb[1]
-        center_x, center_y = (brx - tlx)/2.0 + tlx, bry
-        #if self.avg_x == []:
-        #    self.avg_x = [center_x, center_x, center_x]
-        #    self.avg_y = [center_y, center_y, center_y]
-        #else:
-        #center_x = np.average(self.avg_x)
-        #center_y = np.average(self.avg_y)
+        base_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+        rot_image = imutils.rotate(base_image, 180)
+        if not self.LineFollower:
+            bb, mask = cd_color_segmentation(rot_image, None)
+            tlx, tly = bb[0]
+            brx, bry = bb[1]
+            center_x, center_y = (brx - tlx)/2.0 + tlx, bry
+        else:
+            cropped_image = rot_image[self.start_y:self.end_y, :]
+            bb, mask = cd_color_segmentation(cropped_image, None)
+            tlx, tly = bb[0]
+            brx, bry = bb[1]
+            tly += self.start_y
+            bry += self.start_y
+            center_x, center_y = (brx - tlx)/2.0 + tlx, (bry - tly)/2.0 + tly
 
-        (h,w) = image.shape[:2]
+        (h,w) = rot_image.shape[:2]
         cone_location = ConeLocationPixel()
         cone_location.u = w - center_x
         cone_location.v = h - center_y
 
         self.cone_pub.publish(cone_location)
-        cv2.rectangle(image, bb[0], bb[1], (255,0,0), 1)
+        cv2.rectangle(rot_image, bb[0], bb[1], (255,0,0), 1)
         debug_msg = self.bridge.cv2_to_imgmsg(mask, "8UC1")
         self.debug_pub.publish(debug_msg)
 
