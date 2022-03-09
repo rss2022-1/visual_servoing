@@ -25,8 +25,9 @@ class ConeDetector():
     def __init__(self):
         # toggle line follower vs cone parker
         self.LineFollower = True
-        self.start_y = 80
-        self.end_y = 140
+        # height: 376, width: 672
+        self.start_y = 150
+        self.end_y = 280
 
         # Subscribe to ZED camera RGB frames
         self.cone_pub = rospy.Publisher("/relative_cone_px", ConeLocationPixel, queue_size=10)
