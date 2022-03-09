@@ -103,9 +103,9 @@ class ParkingController():
         error_msg = ParkingError()
 
         # currently just straight up publishes these values
-        error_msg.x_error = self.relative_x
+        error_msg.x_error = self.relative_x - self.parking_distance
         error_msg.y_error = self.relative_y
-        error_msg.distance_error = np.sqrt(self.relative_x**2+self.relative_y**2)
+        error_msg.distance_error = np.sqrt(self.relative_x**2+self.relative_y**2) - self.parking_distance
         
         self.error_pub.publish(error_msg)
 
