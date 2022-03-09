@@ -29,7 +29,7 @@ class ParkingController():
         self.drive_cmd = AckermannDriveStamped()
 
         self.parking_distance = 1 # meters; try playing with this number!
-        self.y_eps = 0.04
+        self.y_eps = 0.06
         self.x_eps = 0.1
         self.relative_x = 0
         self.relative_y = 0
@@ -57,7 +57,7 @@ class ParkingController():
                     angle = min(0.34, output)
                 elif output <= 0:
                     angle = max(-0.34, output)
-                self.create_message(-velocity, angle)
+                self.create_message(-velocity/4., angle)
         # Cone too far in front
         elif self.relative_x - self.parking_distance > self.x_eps:
             error = self.relative_y
@@ -66,7 +66,7 @@ class ParkingController():
                 angle = min(0.34, output)
             elif output <= 0:
                 angle = max(-0.34, output)
-            self.create_message(velocity, angle)
+            self.create_message((velocity * min(abs(self.relative_x - self.parking_distance), 1)), angle)
         # Cone too close
         elif self.relative_x - self.parking_distance < -self.x_eps:
             error = -self.relative_y
@@ -75,7 +75,7 @@ class ParkingController():
                 angle = min(0.34, output)
             elif output <= 0:
                 angle = max(-0.34, output)
-            self.create_message(-velocity, angle)
+            self.create_message(-velocity*min(abs(self.relative_x - self.parking_distance), 1), angle)
         self.drive_pub.publish(self.drive_cmd)
         self.error_publisher()
 

@@ -31,6 +31,8 @@ class ConeDetector():
         self.debug_pub = rospy.Publisher("/cone_debug_img", Image, queue_size=10)
         self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
+        self.avg_x = []
+        self.avg_y = []
 
     def image_callback(self, image_msg):
         # Apply your imported color segmentation function (cd_color_segmentation) to the image msg here
@@ -48,10 +50,17 @@ class ConeDetector():
 
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         image = imutils.rotate(image, 180)
-        bb = cd_color_segmentation(image, None)
+        bb, mask = cd_color_segmentation(image, None)
         tlx, tly = bb[0]
         brx, bry = bb[1]
         center_x, center_y = (brx - tlx)/2.0 + tlx, bry
+        #if self.avg_x == []:
+        #    self.avg_x = [center_x, center_x, center_x]
+        #    self.avg_y = [center_y, center_y, center_y]
+        #else:
+        #center_x = np.average(self.avg_x)
+        #center_y = np.average(self.avg_y)
+
         (h,w) = image.shape[:2]
         cone_location = ConeLocationPixel()
         cone_location.u = w - center_x
@@ -59,7 +68,7 @@ class ConeDetector():
 
         self.cone_pub.publish(cone_location)
         cv2.rectangle(image, bb[0], bb[1], (255,0,0), 1)
-        debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
+        debug_msg = self.bridge.cv2_to_imgmsg(mask, "8UC1")
         self.debug_pub.publish(debug_msg)
 
 

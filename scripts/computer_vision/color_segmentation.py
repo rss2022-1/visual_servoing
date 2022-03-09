@@ -13,7 +13,6 @@ import pdb
 #  v
 #  v
 ###############################################################
-
 def image_print(img):
 	"""
 	Helper function to print out images, for debugging. Pass them in as a list.
@@ -43,13 +42,13 @@ def cd_color_segmentation(img, template):
 	hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 	# Erode
-	kernel = np.ones((8, 8), 'uint8')
+	kernel = np.ones((4, 4), 'uint8')
 	img = cv2.erode(img, kernel, iterations=1)
-	img = cv2.dilate(img, kernel, iterations=1)
+	img = cv2.dilate(img, np.ones((8,8), 'uint8'), iterations=1)
 
 	# Filter HSV values to get one with the cone color, creating mask while doing so
-	ORANGE_MIN = np.array([7, 50, 50],np.uint8) # [Hue, Saturation, Value] #5/17 # 5
-	ORANGE_MAX = np.array([13, 255, 255],np.uint8) # 17
+	ORANGE_MIN = np.array([5, 170, 170],np.uint8) # [Hue, Saturation, Value] #5/17 # 5
+	ORANGE_MAX = np.array([100, 255, 255],np.uint8) # 17
 	mask = cv2.inRange(hsv_img, ORANGE_MIN, ORANGE_MAX)
 	# image_print(mask)
 
@@ -64,7 +63,7 @@ def cd_color_segmentation(img, template):
 			best_x = x
 			best_y = y
 
-	# cv2.rectangle(img,(best_x,best_y),(best_x+max_w,best_y+max_h),(255,0,0),1)
+	cv2.rectangle(mask,(best_x,best_y),(best_x+max_w,best_y+max_h),(255,0,0),1)
 
 	bounding_box = ((best_x,best_y),(best_x+max_w,best_y+max_h))
 	# image_print(img)
@@ -73,4 +72,4 @@ def cd_color_segmentation(img, template):
 	########### YOUR CODE ENDS HERE ###########
 
 	# Return bounding box
-	return bounding_box
+	return bounding_box, mask
