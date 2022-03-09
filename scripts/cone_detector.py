@@ -27,7 +27,7 @@ class ConeDetector():
         # toggle line follower vs cone parker
         self.LineFollower = True
         # height: 376, width: 672
-        self.start_y = 150
+        self.start_y = 200
         self.end_y = 280
 
         # Subscribe to ZED camera RGB frames

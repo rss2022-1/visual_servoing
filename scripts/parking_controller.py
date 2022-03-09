@@ -28,7 +28,7 @@ class ParkingController():
         self.error_pub = rospy.Publisher("/parking_error", ParkingError, queue_size=10)
         self.drive_cmd = AckermannDriveStamped()
 
-        self.parking_distance = .75 # meters; try playing with this number!
+        self.parking_distance = .1 # meters; try playing with this number!
         self.eps = 0.05
         self.slow_range = 0.1
         self.relative_x = 0
