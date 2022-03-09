@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from cv2 import rectangle
 import numpy as np
 import rospy
 
@@ -51,21 +52,23 @@ class ConeDetector():
 
         base_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         rot_image = imutils.rotate(base_image, 180)
+        (h,w) = rot_image.shape[:2]
         if not self.LineFollower:
             bb, mask = cd_color_segmentation(rot_image, None)
             tlx, tly = bb[0]
             brx, bry = bb[1]
             center_x, center_y = (brx - tlx)/2.0 + tlx, bry
         else:
-            cropped_image = rot_image[self.start_y:self.end_y, :]
+            cropped_image = rot_image
+            cv2.rectangle(cropped_image, (0,0), (w, self.start_y), (255, 255, 255), -1)
+            cv2.rectangle(cropped_image, (0,self.end_y), (w, h), (255, 255, 255), -1)
             bb, mask = cd_color_segmentation(cropped_image, None)
             tlx, tly = bb[0]
             brx, bry = bb[1]
-            tly += self.start_y
-            bry += self.start_y
+            # tly += self.start_y
+            # bry += self.start_y
             center_x, center_y = (brx - tlx)/2.0 + tlx, (bry - tly)/2.0 + tly
 
-        (h,w) = rot_image.shape[:2]
         cone_location = ConeLocationPixel()
         cone_location.u = w - center_x
         cone_location.v = h - center_y
