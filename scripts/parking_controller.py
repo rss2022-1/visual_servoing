@@ -30,7 +30,7 @@ class ParkingController():
 
         self.parking_distance = 1 # meters; try playing with this number!
         self.eps = 0.05
-        self.slow_range = 0.3
+        self.slow_range = 0.1
         self.relative_x = 0
         self.relative_y = 0
 
@@ -60,6 +60,8 @@ class ParkingController():
                     elif output <= 0:
                         angle = max(-0.34, output)
                     self.create_message(-velocity, angle)
+                    self.drive_pub.publish(self.drive_cmd)
+                    self.error_publisher()
         # Cone too far in front
         elif self.relative_x - self.parking_distance > self.slow_range:
             error = self.relative_y
@@ -68,7 +70,7 @@ class ParkingController():
                 angle = min(0.34, output)
             elif output <= 0:
                 angle = max(-0.34, output)
-            self.create_message((velocity * min(abs(self.relative_x - self.parking_distance), 1)), angle)
+            self.create_message(velocity, angle)
         # Cone too close
         elif self.relative_x - self.parking_distance < -self.eps:
             error = -self.relative_y
@@ -77,7 +79,7 @@ class ParkingController():
                 angle = min(0.34, output)
             elif output <= 0:
                 angle = max(-0.34, output)
-            self.create_message(-velocity*min(abs(self.relative_x - self.parking_distance), 1), angle)
+            self.create_message(-velocity, angle)
         self.drive_pub.publish(self.drive_cmd)
         self.error_publisher()
 
